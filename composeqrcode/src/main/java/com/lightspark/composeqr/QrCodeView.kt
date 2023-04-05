@@ -1,5 +1,6 @@
 package com.lightspark.composeqr
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,8 +16,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 /**
@@ -67,36 +72,53 @@ fun QrCodeView(
 @Composable
 fun QrCodeView(
     data: String,
+    backgroundImageId: Int,
     modifier: Modifier = Modifier,
     colors: QrCodeColors = QrCodeColors.default(),
     dotShape: DotShape = DotShape.Square,
     encoder: QrEncoder = ZxingQrEncoder()
 ) {
+    val context = LocalContext.current
     val encodedData = remember(data, encoder) { encoder.encode(data) }
+    val backgroundBitmap: ImageBitmap = remember {
+        return@remember BitmapFactory.decodeResource(
+            context.resources,
+            backgroundImageId
+        ).asImageBitmap()
+    }
+    val customColors = QrCodeColors.default().copy(background = Color.Black, foreground = Color.White)
+
 
     Canvas(modifier = modifier.background(colors.background)) {
         encodedData?.let { matrix ->
+            // Draw background image
+            drawImage(
+                image = backgroundBitmap,
+                dstSize = IntSize(size.width.toInt(), size.height.toInt())
+            )
+
+            // QR Code
             val cellSize = size.width / matrix.width
             for (x in 0 until matrix.width) {
                 for (y in 0 until matrix.height) {
                     if (matrix.get(x, y) != 1.toByte() || isFinderCell(x, y, matrix.width)) continue
                     when (dotShape) {
                         DotShape.Square -> drawRect(
-                            color = colors.foreground,
+                            color = colors.background,
                             topLeft = Offset(x * cellSize, y * cellSize),
                             size = Size(cellSize, cellSize)
                         )
                         DotShape.Circle -> drawCircle(
-                            color = colors.foreground,
+                            color = colors.background,
                             center = Offset(
                                 x * cellSize + cellSize / 2, y * cellSize + cellSize / 2
                             ),
-                            radius = cellSize / 2
+                            radius = cellSize / 4
                         )
                     }
                 }
             }
-            drawFinderSquares(cellSize, colors, dotShape)
+            drawFinderSquares(cellSize, customColors, dotShape)
         }
     }
 }
