@@ -88,7 +88,6 @@ fun QrCodeView(
     }
     val customColors = QrCodeColors.default().copy(background = Color.Black, foreground = Color.White)
 
-
     Canvas(modifier = modifier.background(colors.background)) {
         encodedData?.let { matrix ->
             // Draw background image
@@ -106,7 +105,7 @@ fun QrCodeView(
                         DotShape.Square -> drawRect(
                             color = colors.background,
                             topLeft = Offset(x * cellSize, y * cellSize),
-                            size = Size(cellSize, cellSize)
+                            size = Size(cellSize / 1.5f, cellSize / 1.5f)
                         )
                         DotShape.Circle -> drawCircle(
                             color = colors.background,
